@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: paymentprocessing-service
+  namespace: kifiya
+spec:
+  selector:
+    app: paymentprocessing
+  ports:
+  - protocol: TCP
+    port: 8080
+    targetPort: 8080
+    nodePort: 31318
+  type: NodePort

@@ -1,0 +1,55 @@
+services:
+  app:
+    build: .
+    ports:
+      - "51318:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+  postgres:
+    image: postgres:17
+    ports:
+      - "5433:5432"
+    environment:
+      - POSTGRES_DB=kifiya-payment
+      - POSTGRES_USER=kifiya_user
+      - POSTGRES_PASSWORD=grace
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U kifiya_user -d kifiya-payment"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+  redis:
+    image: redis:8.0.0
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: ["redis-server", "--save", "60", "1", "--maxmemory", "500mb", "--maxmemory-policy", "allkeys-lru"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+  rabbitmq:
+    image: rabbitmq:4-management
+    ports:
+      - "15672:15672"
+      - "5672:5672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+volumes:
+  postgres_data:
+  redis_data:
+  rabbitmq_data:

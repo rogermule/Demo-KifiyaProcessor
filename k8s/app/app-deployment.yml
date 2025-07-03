@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: paymentprocessing-app
+  namespace: kifiya
+  labels:
+    app: paymentprocessing
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: paymentprocessing
+  template:
+    metadata:
+      labels:
+        app: paymentprocessing
+    spec:
+      containers:
+      - name: paymentprocessing
+        image: paymentprocessing:0.0.1-SNAPSHOT
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8080
+        env:
+        - name: SPRING_DATASOURCE_URL
+          value: "jdbc:postgresql://postgres-service:5432/kifiya-payment"
+        - name: SPRING_DATASOURCE_USERNAME
+          value: "kifiya_user"
+        - name: SPRING_DATASOURCE_PASSWORD
+          value: "grace"
+        - name: SPRING_DATA_REDIS_HOST
+          value: "redis-service"
+        - name: SPRING_RABBITMQ_HOST
+          value: "rabbitmq-service"
+        - name: SPRING_RABBITMQ_PORT
+          value: "5672"
+        - name: SPRING_RABBITMQ_USERNAME
+          value: "guest"
+        - name: SPRING_RABBITMQ_PASSWORD
+          value: "guest"
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "500m"
+          limits:
+            memory: "1Gi"
+            cpu: "1000m"
+        livenessProbe:
+          httpGet:
+            path: /actuator/health
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /actuator/health
+            port: 8080
+          initialDelaySeconds: 15
+          periodSeconds: 5

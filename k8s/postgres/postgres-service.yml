@@ -1,0 +1,12 @@
+kind: Service
+metadata:
+  name: postgres-service
+  namespace: kifiya
+spec:
+  selector:
+    app: postgres
+  ports:
+  - protocol: TCP
+    port: 5432
+    targetPort: 5432
+  type: ClusterIP
