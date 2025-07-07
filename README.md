@@ -1,102 +1,128 @@
-💸 Kifiya Payment Processing Service – Demo App
-By @rogermule
+# Kifiya Payment Processing Service – Demo App
 
-A demo application showcasing a payment processing flow using Java 21, Spring Boot, PostgreSQL, Redis, RabbitMQ, and Docker, following Hexagonal Architecture.
+A demo application showcasing a payment processing flow using **Java 21**, **Spring Boot**, **PostgreSQL**, **Redis**, **RabbitMQ**, and **Docker**, built with **Hexagonal Architecture** for modularity and scalability.
 
-🛠️ Requirements
-Java 21
-Maven
-Docker & Docker Compose
-(Optional) VS Code or IntelliJ
+Developed by [@rogermule](https://github.com/rogermule).
 
-Recommended Extensions: Maven, Docker, REST Client, Java extensions
+## Requirements
 
-⚙️ Build Instructions
-# Clone the repository
-git clone https://github.com/rogermule/Demo-KifiyaProcessor.git
+- Java 21
+- Maven
+- Docker & Docker Compose (optional for local development)
+- IDE: VS Code or IntelliJ IDEA
 
-# Navigate to the project directory
-cd Demo-KifiyaProcessor
+**Recommended Extensions**:
+- Maven
+- Docker
+- REST Client
+- Java Extensions
 
-# Build the project (skip tests)
-mvn clean package -DskipTests
+## Build Instructions
 
-# Check if the build was successful
-ls target/paymentprocessing-0.0.1-SNAPSHOT.jar
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/rogermule/Demo-KifiyaProcessor.git
+   ```
 
-🚀 Run the Application
+2. Navigate to the project directory:
+   ```bash
+   cd Demo-KifiyaProcessor
+   ```
+
+3. Build the project (skip tests for faster setup):
+   ```bash
+   mvn clean package -DskipTests
+   ```
+
+4. Verify build output:
+   ```bash
+   ls target/paymentprocessing-0.0.1-SNAPSHOT.jar
+   ```
+
+## Running the Application
+
+Start the application and its dependencies using Docker Compose:
+
+```bash
 docker-compose up --build
+```
 
-🔗 Endpoints
-Action	Method	URL
-Create payment	POST	http://localhost:51318/api/payments
-Get payment	GET	http://localhost:51318/api/payments/{idempotencyKey}
-Get payment status	GET	http://localhost:51318/api/payments/status/{idempotencyKey}
-Health check	GET	http://localhost:51318/actuator/health
-Metrics	GET	http://localhost:51318/actuator/prometheus
+To stop the application:
 
-🧪 Sample Request Payload (POST /api/payments)
+```bash
+docker-compose down
+```
+
+## API Endpoints
+
+| Action             | Method | URL                                              |
+|--------------------|--------|--------------------------------------------------|
+| Create Payment     | POST   | http://localhost:51318/api/payments              |
+| Get Payment        | GET    | http://localhost:51318/api/payments/{idempotencyKey} |
+| Get Payment Status | GET    | http://localhost:51318/api/payments/status/{idempotencyKey} |
+| Health Check       | GET    | http://localhost:51318/actuator/health           |
+| Metrics            | GET    | http://localhost:51318/actuator/prometheus       |
+
+### Sample Request Payload (POST /api/payments)
+
+```json
 {
   "idempotencyKey": "rog-123",
   "amount": 100.00,
   "currency": "USD",
   "clientReference": "order-456"
 }
+```
 
-🐇 Services
-RabbitMQ Dashboard: http://localhost:15672
+## Services
 
-Username: guest
-Password: guest
+### RabbitMQ Dashboard
+- URL: http://localhost:15672
+- Username: guest
+- Password: guest
 
-PostgreSQL Access:
-psql -h localhost -p 5433 -U kifiya_user -d kifiya-payment
+### PostgreSQL Access
+- Command: `psql -h localhost -p 5433 -U kifiya_user -d kifiya-payment`
+- Password: grace
 
-# Password: grace
+## Architecture
 
-🛑 Stop the App
-docker-compose down
-🧱 Design Overview
-📐 Architecture
-Hexagonal Architecture: Clean separation of business logic and infrastructure.
+This application follows **Hexagonal Architecture** (Ports and Adapters) to ensure a clean separation of business logic from infrastructure, promoting modularity and testability.
 
-🧰 Tech Stack
-Spring Boot 3.5.3 – REST, JPA, RabbitMQ integration
-PostgreSQL – Reliable data persistence
-Redis – Fast rate limiting (2 tx/sec)
-RabbitMQ – Message-driven event handling
+### Tech Stack
+- Spring Boot 3.5.3: REST APIs, JPA, RabbitMQ integration
+- PostgreSQL: Reliable data persistence
+- Redis: Fast rate limiting (2 transactions/second)
+- RabbitMQ: Message-driven event handling
+- Docker: Containerized services for easy deployment
 
-⚖️ Trade-offs
-✅ Modular and extensible with Docker/Kubernetes support
-❗ Uses a mock payment provider (as per demo constraints)
+### Trade-offs
+- **Modular & Extensible**: Supports Docker and Kubernetes for scalability
+- **Mock Payment Provider**: Used for demo purposes due to constraints
 
-✅ Challenge Responses
-Concurrency & Rate Limiting
-→ Redis limits to 2 transactions/second. RabbitMQ queues the overflow.
+## Challenge Responses
 
-State Management & Durability
-→ PostgreSQL stores the data. RabbitMQ queues are persisted using Docker volumes.
+- **Concurrency & Rate Limiting**: Redis enforces a limit of 2 transactions/second, with RabbitMQ queuing overflow.
+- **State Management & Durability**: PostgreSQL ensures persistent storage, and RabbitMQ queues are persisted via Docker volumes.
+- **Decoupling & Extensibility**: The `PaymentProvider` interface allows swapping payment providers, with events handled via RabbitMQ.
+- **Reliability & Failure Handling**: Implements transactional outbox, retries, and duplicate-checking for robust processing.
 
-Decoupling & Extensibility
-→ PaymentProvider interface keeps providers swappable. Events sent via RabbitMQ.
+## Kubernetes Support
 
-Reliability & Failure Handling
-→ Transactional outbox, retries, and duplicate-checking logic ensure robust processing.
+Kubernetes manifests are provided in the `/k8s` directory for deploying the application and its dependencies.
 
-
-☸️ Kubernetes Support
-Kubernetes manifests are included under the /k8s directory.
-
-⚠️ For cloud deployments, change all Service types to LoadBalancer or use Ingess
-
-Directory Structure:
-
+### Directory Structure
+```
 k8s/
-├── app/        # Application deployment & service
-├── postgres/   # PostgreSQL deployment, service & PVC (requires PV)
-├── rabbitmq/   # RabbitMQ deployment, service & PVC (requires PV)
-└── redis/      # Redis deployment, service & PVC (requires PV)
+├── app/          # Application deployment & service
+├── postgres/     # PostgreSQL deployment, service & PVC (requires PV)
+├── rabbitmq/     # RabbitMQ deployment, service & PVC (requires PV)
+└── redis/        # Redis deployment, service & PVC (requires PV)
+```
 
+**Note**: For cloud deployments, update Service types to `LoadBalancer` or use an Ingress controller.
 
-⚖️ Final points
-- Critical variables like password and other things should be stored in secure place like AWS Secrets, Bitbucket Variables or other places depending on the implementation requirement.
+## Security Recommendations
+
+- Store sensitive variables (e.g., passwords, API keys) in a secure vault like AWS Secrets Manager, Bitbucket Variables, or equivalent, depending on your deployment environment.
+- Avoid hardcoding credentials in configuration files or source code.
